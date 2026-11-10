@@ -20,7 +20,7 @@ const allAddresses = [
 ]
 const common = [
   { value: '127.0.0.1', label: '本地回环', detail: '127.0.0.1' },
-  { value: null, label: '自定义', detail: props.listen ? '输入 IP' : '输入 IP 或主机名' },
+  { value: null, label: '自定义', detail: props.listen ? '输入 IP 或 localhost' : '输入 IP 或主机名' },
 ]
 const options = computed(() => props.listen ? [...allAddresses, ...common] : common)
 const selected = computed(() => options.value.find(option => option.value === model.value))

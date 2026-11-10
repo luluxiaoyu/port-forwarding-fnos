@@ -9,6 +9,7 @@
   --hover: #e9e9e9;
   --line: #e2e2e2;
   --control-line: #d5d5d5;
+  --switch-off: #737984;
   --ink: #17181a;
   --muted: #61646a;
   --nav-text: #45474b;
@@ -37,6 +38,7 @@
   --hover: #363840;
   --line: #3a3b44;
   --control-line: #4c4e59;
+  --switch-off: #687080;
   --ink: #eef0f4;
   --muted: #b1b8c6;
   --nav-text: #d0d3db;
@@ -83,6 +85,7 @@ body { background: var(--shell); color: var(--ink); }
 .list-page { @apply flex min-h-0 flex-1 flex-col; }
 .page-header { @apply flex shrink-0 flex-wrap items-center justify-between gap-x-3 gap-y-2 px-5 py-3; }
 .page-header h1 { @apply text-lg font-semibold; }
+.page-header h1:focus, .form-head h1:focus { outline: none; }
 .toolbar { @apply flex flex-wrap items-center gap-2; }
 .list-body { @apply min-h-0 flex-1 overflow-y-auto px-5 pb-3; }
 .list-footer {
@@ -133,9 +136,22 @@ button:disabled { opacity: 0.55; }
 .rule-card[data-status="listening"] .status-dot { background: var(--accent); }
 .rule-card[data-status="failed"] .status-dot { background: var(--danger); }
 .rule-route { @apply grid min-w-0 grid-cols-[minmax(0,max-content)_auto_minmax(0,max-content)] items-center gap-3; }
+.route-arrow { @apply mb-0.5 self-end; color: var(--muted); }
 .endpoint { @apply grid min-w-0 gap-0.5 text-sm font-medium; overflow-wrap: anywhere; }
 .endpoint .muted { @apply font-normal; }
 .rule-actions { @apply ml-auto flex flex-wrap items-center justify-end gap-1; }
+.rule-toggle { @apply grid h-9 w-11 shrink-0 place-items-center rounded-md; }
+.rule-toggle-track {
+  @apply relative block h-5 w-9 rounded-full;
+  background: var(--switch-off);
+}
+.rule-toggle[aria-checked="true"] .rule-toggle-track { background: var(--action); }
+.rule-toggle-thumb {
+  @apply absolute top-0.5 left-0.5 size-4 rounded-full bg-white;
+  box-shadow: 0 1px 3px #0003;
+}
+.rule-toggle[aria-checked="true"] .rule-toggle-thumb { transform: translateX(1rem); }
+.rule-toggle:enabled:hover .rule-toggle-track { filter: brightness(0.95); }
 .status { @apply mr-1 text-xs; color: var(--muted); }
 .protocol-badge {
   @apply inline-flex shrink-0 items-center rounded-md px-2 py-0.5 text-[11px] leading-4 font-semibold tracking-wide;
@@ -237,6 +253,8 @@ button:disabled { opacity: 0.55; }
 }
 .flow-header { @apply mb-4 flex items-center justify-between gap-2; }
 .flow-header h2 { @apply text-sm font-semibold; }
+.flow-controls { @apply flex items-center gap-2; }
+.flow-motion { display: none; }
 .flow-steps { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--flow-gap); }
 .flow-step { @apply relative grid min-w-0 content-start gap-2; }
 .flow-connector {
@@ -381,6 +399,8 @@ dialog::backdrop { background: rgb(0 0 0 / 38%); }
     transition: background-color 140ms ease, color 140ms ease, opacity 140ms ease;
   }
   .combo-toggle .icon { transition: transform 160ms var(--ease-out); }
+  .rule-toggle-track { transition: background-color 150ms ease; }
+  .rule-toggle-thumb { transition: transform 180ms var(--ease-out); }
   .combo-enter-active, .combo-leave-active, .toast-enter-active, .toast-leave-active {
     transition: opacity 150ms ease, transform 180ms var(--ease-out);
   }
@@ -397,9 +417,16 @@ dialog::backdrop { background: rgb(0 0 0 / 38%); }
   .spinner { animation: spin .8s linear infinite; }
   .rule-skeleton > span { animation: skeleton-pulse 1.45s ease-in-out infinite; }
   .flow-value { animation: flow-value-in 150ms var(--ease-out) both; }
-  .flow-packet { animation: flow-across 1.65s var(--ease-out) 2 both; }
-  .flow-halo { animation: flow-halo 1.65s var(--ease-out) 2 both; }
-  .flow-target :is(.flow-packet, .flow-halo) { animation-delay: .68s; }
+  .flow-motion {
+    @apply grid size-6 place-items-center rounded-md;
+    color: var(--muted);
+  }
+  .flow-motion:hover { background: var(--symbol); color: var(--accent); }
+  .flow-motion .icon { @apply size-3.5; }
+  .flow-packet { animation: flow-across 5s linear infinite both; }
+  .flow-halo { animation: flow-halo 5s var(--ease-out) infinite both; }
+  .flow-target :is(.flow-packet, .flow-halo) { animation-delay: 2s; }
+  .flow[data-paused="true"] :is(.flow-packet, .flow-halo) { animation-play-state: paused; }
 
   @container rule-form (max-width: 540px) {
     .flow-packet { animation-name: flow-down; }
@@ -410,16 +437,16 @@ dialog::backdrop { background: rgb(0 0 0 / 38%); }
 @keyframes flow-value-in { from { opacity: .55; transform: translateY(3px); } }
 @keyframes flow-across {
   from { transform: translateX(-100%); }
-  10%, 34% { opacity: 1; }
-  46%, to { opacity: 0; transform: translateX(0); }
+  5%, 34% { opacity: 1; }
+  41%, to { opacity: 0; transform: translateX(0); }
 }
 @keyframes flow-down {
   from { transform: translateY(-100%); }
-  10%, 34% { opacity: 1; }
-  46%, to { opacity: 0; transform: translateY(0); }
+  5%, 34% { opacity: 1; }
+  41%, to { opacity: 0; transform: translateY(0); }
 }
 @keyframes flow-halo {
-  0%, 37% { opacity: 0; transform: scale(1); }
-  43% { opacity: .52; }
-  69%, to { opacity: 0; transform: scale(1.45); }
+  0%, 36% { opacity: 0; transform: scale(1); }
+  42% { opacity: .52; }
+  59%, to { opacity: 0; transform: scale(1.45); }
 }

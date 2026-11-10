@@ -62,6 +62,16 @@ func create(t *testing.T, m *Manager, endpoints Endpoints) State {
 	return rule
 }
 
+func TestListenLocalhostUsesLoopback(t *testing.T) {
+	m := open(t, filepath.Join(t.TempDir(), "rules.json"))
+	endpoints := input(t, 1)
+	endpoints.ListenAddress = " LOCALHOST. "
+	rule := create(t, m, endpoints)
+	if rule.ListenAddress != "127.0.0.1" || rule.Status != "listening" {
+		t.Fatalf("localhost rule = %+v", rule)
+	}
+}
+
 func TestTCPHalfClose(t *testing.T) {
 	target := listen(t, 0)
 	target.SetDeadline(time.Now().Add(3 * time.Second))

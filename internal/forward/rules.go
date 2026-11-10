@@ -298,10 +298,13 @@ func normalize(input Endpoints) (Endpoints, error) {
 		return Endpoints{}, &Error{"invalid_rule", "备注不能超过 120 个字符"}
 	}
 	input.ListenAddress = strings.TrimSpace(input.ListenAddress)
+	if strings.EqualFold(strings.TrimSuffix(input.ListenAddress, "."), "localhost") {
+		input.ListenAddress = "127.0.0.1"
+	}
 	if input.ListenAddress != "*" {
 		address, err := netip.ParseAddr(input.ListenAddress)
 		if err != nil || address.Zone() != "" {
-			return Endpoints{}, &Error{"invalid_rule", "入口地址请输入 IPv4 或 IPv6 地址，或选择全部地址"}
+			return Endpoints{}, &Error{"invalid_rule", "入口请输入 IPv4、IPv6 或 localhost，也可选择全部地址"}
 		}
 		input.ListenAddress = address.Unmap().String()
 	}

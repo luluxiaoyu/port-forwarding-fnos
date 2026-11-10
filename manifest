@@ -1,5 +1,5 @@
 appname=port-forwarding-fnos
-version=0.2.2
+version=0.2.3
 display_name=本地端口转发
 desc=简单的本地TCP/UDP端口转发应用（飞牛原生应用）。
 platform=x86

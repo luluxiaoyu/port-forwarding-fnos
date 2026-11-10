@@ -186,7 +186,10 @@ function remove() {
           <h1 id="rules-title" ref="viewHeading" tabindex="-1">转发规则</h1>
           <div class="toolbar">
             <button class="button" type="button" :disabled="busy || loading || refreshing" @click="refresh(true)">
-              <svg class="icon" :class="{ spinner: refreshing }" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 7v5h-5M4 17v-5h5m-4.5-3a8 8 0 0 1 13.3-3l2.2 2m-16 8 2.2 2a8 8 0 0 0 13.3-3" /></svg>
+              <svg class="icon" :class="{ spinner: refreshing }" viewBox="0 0 24 24" aria-hidden="true">
+                <path v-if="refreshing" d="M20 12a8 8 0 1 1-8-8" />
+                <path v-else d="M20 4v5h-5M4 20v-5h5M4.8 9a8 8 0 0 1 12.9-2.7L20 9M4 15l2.3 2.7A8 8 0 0 0 19.2 15" />
+              </svg>
               {{ refreshing ? '刷新中…' : '刷新' }}
             </button>
             <button class="button primary" type="button" :disabled="busy" @click="showForm()">
@@ -223,7 +226,9 @@ function remove() {
                       <span class="muted text-xs">NAS 入口</span>
                       <span>{{ formatEndpoint(rule.listenAddress, rule.listenPort) }}</span>
                     </div>
-                    <span aria-hidden="true" class="muted">→</span>
+                    <svg class="icon route-arrow" viewBox="0 0 24 24" aria-hidden="true">
+                      <path d="M5 12h14m-6-6 6 6-6 6" />
+                    </svg>
                     <div class="endpoint">
                       <span class="muted text-xs">转发到</span>
                       <span>{{ formatEndpoint(rule.targetAddress, rule.targetPort) }}</span>
@@ -243,12 +248,10 @@ function remove() {
                   :disabled="busy" @click="toggle(rule, true)">
                   <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 5v6h-6m6 0a8 8 0 1 0-.7 5" /></svg>
                 </button>
-                <button class="icon-button" type="button" :title="rule.enabled ? '停用' : '启用'"
-                  :aria-label="rule.enabled ? '停用' : '启用'" :disabled="busy" @click="toggle(rule, !rule.enabled)">
-                  <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
-                    <path v-if="rule.enabled" d="M12 3v8m5-5a8 8 0 1 1-10 0" />
-                    <path v-else d="m8 5 11 7-11 7z" />
-                  </svg>
+                <button class="rule-toggle" type="button" role="switch" aria-label="启用规则"
+                  :aria-checked="rule.enabled" :title="rule.enabled ? '停用规则' : '启用规则'"
+                  :disabled="busy" @click="toggle(rule, !rule.enabled)">
+                  <span class="rule-toggle-track" aria-hidden="true"><span class="rule-toggle-thumb"></span></span>
                 </button>
                 <button v-if="!rule.enabled" class="icon-button" type="button" title="编辑" aria-label="编辑"
                   :disabled="busy" @click="showForm(rule)">
