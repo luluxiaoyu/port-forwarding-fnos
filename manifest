@@ -1,7 +1,7 @@
 appname=port-forwarding-fnos
 version=1.0.0
 display_name=本地端口转发
-desc=简单的本地TCP/UDP端口转发应用（飞牛原生应用）。公网地址或通配入口可能暴露目标服务，请确认目标服务已启用鉴权。
+desc=简单的本地TCP/UDP端口转发应用（飞牛原生应用）。公网地址或通配入口可能暴露目标服务，请确认目标服务已启用鉴权或已做好安全措施。
 platform=x86
 source=thirdparty
 maintainer=小宇

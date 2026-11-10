@@ -26,8 +26,8 @@ const statusLabels = { listening: '监听中', disabled: '已停用', failed: '�
 const protocolChoices = ['tcp', 'udp'] as const
 const exposureNotice = computed(() => {
   const scope = listenAddressScope(draft.value.listenAddress)
-  if (scope === 'all') return '将监听所有网卡，入口可能从公网访问。请确认目标服务已启用鉴权。'
-  if (scope === 'public') return '此入口可能从公网访问。请确认目标服务已启用鉴权。'
+  if (scope === 'all') return '将监听所有网卡，入口可能从公网访问。请确认目标服务已启用鉴权或已做好安全措施。'
+  if (scope === 'public') return '此入口可能从公网访问。请确认目标服务已启用鉴权或已做好安全措施。'
   return ''
 })
 
