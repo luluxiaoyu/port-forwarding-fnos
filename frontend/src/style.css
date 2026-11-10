@@ -348,8 +348,6 @@ button:disabled { opacity: 0.55; }
 }
 .toast-stack {
   @apply flex h-full flex-col items-center gap-2 overflow-y-auto p-4;
-  justify-content: center;
-  justify-content: safe center;
 }
 .toast-card {
   @apply grid flex-none grid-cols-[auto_minmax(0,1fr)_auto] items-start gap-2.5 rounded-xl border p-2.5 text-sm;
