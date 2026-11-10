@@ -14,13 +14,13 @@ const active = ref(-1)
 const typing = ref(false)
 
 const allAddresses = [
-  { value: '*', label: '全部 IPv4 / IPv6', detail: '0.0.0.0  /  ::', icon: 'dual' },
-  { value: '0.0.0.0', label: '全部 IPv4', detail: '0.0.0.0', icon: 'v4' },
-  { value: '::', label: '全部 IPv6', detail: '::', icon: 'v6' },
+  { value: '*', label: '全部 IPv4 / IPv6', detail: '0.0.0.0 / ::' },
+  { value: '0.0.0.0', label: '全部 IPv4', detail: '0.0.0.0' },
+  { value: '::', label: '全部 IPv6', detail: '::' },
 ]
 const common = [
-  { value: '127.0.0.1', label: '本地回环', detail: '127.0.0.1', icon: 'local' },
-  { value: null, label: '自定义', detail: props.listen ? '输入 IP' : '输入 IP 或主机名', icon: 'custom' },
+  { value: '127.0.0.1', label: '本地回环', detail: '127.0.0.1' },
+  { value: null, label: '自定义', detail: props.listen ? '输入 IP' : '输入 IP 或主机名' },
 ]
 const options = computed(() => props.listen ? [...allAddresses, ...common] : common)
 const selected = computed(() => options.value.find(option => option.value === model.value))
@@ -115,21 +115,11 @@ function blur() {
         <li v-for="(option, index) in options" :id="id + '-option-' + index" :key="option.label"
           role="option" :aria-selected="active === index || (active < 0 && option.value === model)" class="combo-option"
           @pointerdown.prevent @click="choose(index)" @mouseenter="active = index">
-          <span class="combo-option-mark" :data-icon="option.icon" aria-hidden="true">
-            <span v-if="option.icon === 'v4' || option.icon === 'v6'">{{ option.icon === 'v4' ? '4' : '6' }}</span>
-            <svg v-else class="icon" viewBox="0 0 24 24">
-              <path v-if="option.icon === 'dual'" d="M7 6h10a3 3 0 1 1 0 6H7a3 3 0 1 0 0 6h10M8 6h.01m8 12h.01" />
-              <path v-else-if="option.icon === 'local'" d="M5 12a7 7 0 1 1 2 5m-2-1v-4h4" />
-              <path v-else d="m13 6 5 5M5 19l1-5L17 3l4 4-11 11z" />
-            </svg>
-          </span>
-          <span class="combo-option-copy">
-            <span>{{ option.label }}</span>
-            <span class="combo-detail">{{ option.detail }}</span>
-          </span>
           <svg v-if="option.value === model" class="icon combo-check" viewBox="0 0 24 24" aria-hidden="true">
             <path d="m5 12 4 4L19 6" />
           </svg>
+          <span class="combo-option-label">{{ option.label }}</span>
+          <span class="combo-detail">{{ option.detail }}</span>
         </li>
       </ul>
       </Transition>

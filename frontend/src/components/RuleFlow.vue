@@ -28,10 +28,7 @@ const pulseKey = computed(() => props.protocol + entry.value + target.value)
 <template>
   <section class="flow" aria-labelledby="flow-title" :data-ready="Boolean(filled)">
     <header class="flow-header">
-      <div>
-        <h2 id="flow-title">流量走向</h2>
-        <p>连接经过 NAS 后，送到你填写的服务。</p>
-      </div>
+      <h2 id="flow-title">流量走向</h2>
       <span class="protocol-badge">{{ protocol.toUpperCase() }}</span>
     </header>
     <ol class="flow-steps">
@@ -50,6 +47,7 @@ const pulseKey = computed(() => props.protocol + entry.value + target.value)
         </span>
         <span class="flow-symbol" aria-hidden="true">
           <svg class="icon" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="3" /><path d="M9 4v7l3 3 3-3V4m-3 10v6" /></svg>
+          <span v-if="filled" :key="pulseKey" class="flow-halo"></span>
         </span>
         <span class="flow-copy">
           <span class="flow-caption">监听入口</span>
@@ -62,6 +60,7 @@ const pulseKey = computed(() => props.protocol + entry.value + target.value)
         </span>
         <span class="flow-symbol" aria-hidden="true">
           <svg class="icon" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="7" rx="2" /><rect x="4" y="13" width="16" height="7" rx="2" /><path d="M8 7.5h1m-1 9h1" /></svg>
+          <span v-if="filled" :key="pulseKey" class="flow-halo"></span>
         </span>
         <span class="flow-copy">
           <span class="flow-caption">转发目标</span>

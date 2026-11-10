@@ -266,53 +266,67 @@ function remove() {
       </section>
 
       <section v-else key="form" class="form-page" aria-labelledby="form-title">
-        <header class="page-header">
-          <div>
-            <h1 id="form-title" ref="viewHeading" tabindex="-1">{{ editing ? '编辑规则' : '新建规则' }}</h1>
-          </div>
-        </header>
         <form class="rule-form" novalidate @submit.prevent="save">
-          <fieldset class="protocol-row" :disabled="busy">
-            <legend class="sr-only">转发协议</legend>
-            <span aria-hidden="true">协议</span>
-            <div class="protocol-picker">
-              <label v-for="protocol in protocolChoices" :key="protocol">
-                <input v-model="draft.protocol" type="radio" name="protocol" :value="protocol" />
-                <span>{{ protocol.toUpperCase() }}</span>
+          <header class="form-head">
+            <h1 id="form-title" ref="viewHeading" tabindex="-1">{{ editing ? '编辑规则' : '新建规则' }}</h1>
+            <fieldset class="protocol-row" :disabled="busy">
+              <legend class="sr-only">转发协议</legend>
+              <div class="protocol-picker">
+                <label v-for="protocol in protocolChoices" :key="protocol">
+                  <input v-model="draft.protocol" type="radio" name="protocol" :value="protocol" />
+                  <span>{{ protocol.toUpperCase() }}</span>
+                </label>
+              </div>
+            </fieldset>
+          </header>
+          <div class="rule-settings">
+            <fieldset class="field-group" :disabled="busy">
+              <legend class="sr-only">NAS 入口</legend>
+              <div class="field-role" aria-hidden="true">
+                <strong>NAS 入口</strong>
+                <span>接收流量</span>
+              </div>
+              <div class="field-pair">
+                <AddressCombobox id="listen-address" v-model="draft.listenAddress"
+                  label="入口地址" listen described-by="listen-help" />
+                <label for="listen-port">
+                  入口端口
+                  <input id="listen-port" v-model="draft.listenPort" inputmode="numeric" pattern="[0-9]{1,5}"
+                    required maxlength="5" placeholder="8080" />
+                </label>
+              </div>
+              <p id="listen-help" class="sr-only">
+                {{ Object.hasOwn(wildcardLabels, draft.listenAddress.trim())
+                  ? '接收发往 NAS 所有 ' + wildcardLabels[draft.listenAddress.trim()] + ' 地址的流量。'
+                  : '选择监听范围，或输入 NAS 的具体 IP。' }}
+              </p>
+            </fieldset>
+            <fieldset class="field-group" :disabled="busy">
+              <legend class="sr-only">目标服务</legend>
+              <div class="field-role" aria-hidden="true">
+                <strong>目标服务</strong>
+                <span>接收转发</span>
+              </div>
+              <div class="field-pair">
+                <AddressCombobox id="target-address" v-model="draft.targetAddress" label="服务地址" />
+                <label for="target-port">
+                  服务端口
+                  <input id="target-port" v-model="draft.targetPort" inputmode="numeric" pattern="[0-9]{1,5}"
+                    required maxlength="5" placeholder="80" />
+                </label>
+              </div>
+            </fieldset>
+            <div class="field-group">
+              <label class="field-role" for="rule-remark">
+                <strong>备注</strong>
+                <span>可选</span>
               </label>
+              <input id="rule-remark" v-model="draft.remark" :disabled="busy" maxlength="120" />
             </div>
-          </fieldset>
-          <fieldset class="field-group" :disabled="busy">
-            <legend>入口（飞牛 NAS）</legend>
-            <AddressCombobox id="listen-address" v-model="draft.listenAddress"
-              label="入口地址" listen described-by="listen-help" />
-            <label for="listen-port">
-              入口端口
-              <input id="listen-port" v-model="draft.listenPort" inputmode="numeric" pattern="[0-9]{1,5}"
-                required maxlength="5" placeholder="例如 8080" />
-            </label>
-            <p id="listen-help" class="muted text-xs sm:col-span-2">选择监听范围，或输入 NAS 的具体 IP。</p>
-            <p v-if="Object.hasOwn(wildcardLabels, draft.listenAddress.trim())"
-              class="warning sm:col-span-2" role="status">
-              接收发往 NAS 所有 {{ wildcardLabels[draft.listenAddress.trim()] }} 地址的流量。
-            </p>
-          </fieldset>
-          <fieldset class="field-group" :disabled="busy">
-            <legend>转发到（目标服务）</legend>
-            <AddressCombobox id="target-address" v-model="draft.targetAddress" label="服务地址" />
-            <label for="target-port">
-              服务端口
-              <input id="target-port" v-model="draft.targetPort" inputmode="numeric" pattern="[0-9]{1,5}"
-                required maxlength="5" placeholder="例如 80" />
-            </label>
-          </fieldset>
+          </div>
           <RuleFlow :protocol="draft.protocol" :listen-address="draft.listenAddress" :listen-port="draft.listenPort"
             :target-address="draft.targetAddress" :target-port="draft.targetPort" />
-          <label class="remark-field" for="rule-remark">
-            备注 <span class="muted">（可选）</span>
-            <input id="rule-remark" v-model="draft.remark" :disabled="busy" maxlength="120" />
-          </label>
-          <div class="flex flex-wrap justify-end gap-2">
+          <div class="form-actions">
             <button class="button" type="button" :disabled="busy" @click="showList">取消</button>
             <button class="button primary" type="submit" :disabled="busy">
               <svg v-if="busy" class="icon spinner" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12a8 8 0 1 1-8-8" /></svg>
