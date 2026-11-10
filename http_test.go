@@ -20,7 +20,7 @@ func TestManagementAPI(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer m.Close()
-	assets := fstest.MapFS{"assets/app.js": {Data: []byte("export {}")}}
+	assets := fstest.MapFS{"app.js": {Data: []byte("export {}")}}
 	handler := newHandler(m, assets, []byte("<html></html>"))
 	request := func(method, path, user, admin, marker, site, body string, want int) string {
 		t.Helper()
@@ -77,6 +77,33 @@ func TestManagementAPI(t *testing.T) {
 	request("PUT", rulePath, "1000", "true", "1", "", body, http.StatusOK)
 	request("DELETE", rulePath, "1001", "false", "1", "", "", http.StatusForbidden)
 	request("DELETE", rulePath, "1000", "true", "1", "", "", http.StatusNoContent)
+}
+
+func TestStaticAssetsStayInsideAssetRoot(t *testing.T) {
+	dir := t.TempDir()
+	assetDir := filepath.Join(dir, "assets")
+	if err := os.Mkdir(assetDir, 0700); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(dir, "private.txt"), []byte("outside asset root"), 0600); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.Symlink("../private.txt", filepath.Join(assetDir, "escape.txt")); err != nil {
+		t.Fatal(err)
+	}
+	assets, err := os.OpenRoot(assetDir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer assets.Close()
+	handler := newHandler(nil, assets.FS(), nil)
+	for _, name := range []string{"escape.txt", "%2e%2e/private.txt", "%2e%2e%2fprivate.txt"} {
+		w := httptest.NewRecorder()
+		handler.ServeHTTP(w, httptest.NewRequest("GET", prefix+"/assets/"+name, nil))
+		if w.Code == http.StatusOK || strings.Contains(w.Body.String(), "outside asset root") {
+			t.Fatalf("%s escaped assets: status %d, %s", name, w.Code, w.Body.String())
+		}
+	}
 }
 
 func TestManagementSocketPermissions(t *testing.T) {

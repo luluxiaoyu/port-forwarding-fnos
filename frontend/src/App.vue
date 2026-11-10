@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { onMounted, onUnmounted, ref } from 'vue'
-import { formatEndpoint, request, type Endpoints, type Protocol, type Rule } from './api'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
+import { formatEndpoint, listenAddressScope, request, type Endpoints, type Protocol, type Rule } from './api'
 import AddressCombobox from './components/AddressCombobox.vue'
 import RuleFlow from './components/RuleFlow.vue'
 import ToastRegion from './components/ToastRegion.vue'
@@ -24,7 +24,12 @@ let seenRuleErrors = new Map<string, string>()
 
 const statusLabels = { listening: '监听中', disabled: '已停用', failed: '启动失败' }
 const protocolChoices = ['tcp', 'udp'] as const
-const wildcardLabels: Record<string, string> = { '*': 'IPv4 和 IPv6', '0.0.0.0': 'IPv4', '::': 'IPv6' }
+const exposureNotice = computed(() => {
+  const scope = listenAddressScope(draft.value.listenAddress)
+  if (scope === 'all') return '将监听所有网卡，入口可能从公网访问。请确认目标服务已启用鉴权。'
+  if (scope === 'public') return '此入口可能从公网访问。请确认目标服务已启用鉴权。'
+  return ''
+})
 
 function blankDraft() {
   return { listenAddress: '*', listenPort: '', targetAddress: '127.0.0.1', targetPort: '', protocol: 'tcp' as Protocol, remark: '' }
@@ -298,11 +303,11 @@ function remove() {
                     required maxlength="5" placeholder="8080" />
                 </label>
               </div>
-              <p id="listen-help" class="sr-only">
-                {{ Object.hasOwn(wildcardLabels, draft.listenAddress.trim())
-                  ? '接收发往 NAS 所有 ' + wildcardLabels[draft.listenAddress.trim()] + ' 地址的流量。'
-                  : '选择监听范围，或输入 NAS 的具体 IP。' }}
+              <p v-if="exposureNotice" id="listen-help" class="exposure-note" role="status">
+                <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" /><path d="M12 7.5v5.2m0 3.3h.01" /></svg>
+                <span>{{ exposureNotice }}</span>
               </p>
+              <p v-else id="listen-help" class="sr-only">选择监听范围，或输入 NAS 的具体 IP。</p>
             </fieldset>
             <fieldset class="field-group" :disabled="busy">
               <legend class="sr-only">目标服务</legend>

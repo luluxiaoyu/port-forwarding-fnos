@@ -17,7 +17,7 @@ import (
 const prefix = "/app/port-forwarding-fnos"
 const api = prefix + "/api/rules"
 
-func newHandler(rules *forward.Manager, web fs.FS, index []byte) http.Handler {
+func newHandler(rules *forward.Manager, assets fs.FS, index []byte) http.Handler {
 	mux := http.NewServeMux()
 	serveIndex := func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
@@ -26,7 +26,7 @@ func newHandler(rules *forward.Manager, web fs.FS, index []byte) http.Handler {
 	}
 	mux.HandleFunc("GET "+prefix, serveIndex)
 	mux.HandleFunc("GET "+prefix+"/{$}", serveIndex)
-	mux.Handle("GET "+prefix+"/assets/", http.StripPrefix(prefix, http.FileServerFS(web)))
+	mux.Handle("GET "+prefix+"/assets/", http.StripPrefix(prefix+"/assets", http.FileServerFS(assets)))
 	mux.HandleFunc("GET "+api, func(w http.ResponseWriter, _ *http.Request) {
 		writeJSON(w, http.StatusOK, rules.List())
 	})

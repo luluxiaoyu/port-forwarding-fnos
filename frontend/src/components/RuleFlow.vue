@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import { formatEndpoint, type Protocol } from '../api'
+import { formatEndpoint, listenAddressScope, type Protocol } from '../api'
 
 const props = defineProps<{
   protocol: Protocol
@@ -18,21 +18,7 @@ function preview(address: string, port: string) {
 
 const entry = computed(() => preview(props.listenAddress, props.listenPort))
 const target = computed(() => preview(props.targetAddress, props.targetPort))
-const internal = computed(() => {
-  const host = props.listenAddress.trim().toLowerCase()
-  if (host === 'localhost' || host === 'localhost.') return true
-  if (host.includes(':')) {
-    try {
-      const canonical = new URL('http://[' + host + ']').hostname
-      return canonical === '[::1]' || /^\[::ffff:7f[\da-f]{2}:[\da-f]+\]$/.test(canonical)
-    } catch {
-      return false
-    }
-  }
-  const octets = host.split('.')
-  return octets.length === 4 && octets[0] === '127' &&
-    octets.every(part => /^(0|[1-9]\d{0,2})$/.test(part) && Number(part) <= 255)
-})
+const internal = computed(() => listenAddressScope(props.listenAddress) === 'loopback')
 const filled = computed(() =>
   props.listenAddress.trim() && props.targetAddress.trim() &&
   [props.listenPort, props.targetPort].every(port => /^\d{1,5}$/.test(port) && Number(port) > 0 && Number(port) <= 65535),

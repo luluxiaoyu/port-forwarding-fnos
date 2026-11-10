@@ -32,11 +32,20 @@ func run() error {
 	if appDir == "" || configDir == "" || dataDir == "" {
 		return errors.New("缺少 TRIM_APPDEST、TRIM_PKGETC 或 TRIM_PKGVAR")
 	}
-	web := os.DirFS(filepath.Join(appDir, "www"))
-	index, err := os.ReadFile(filepath.Join(appDir, "www", "index.html"))
+	web, err := os.OpenRoot(filepath.Join(appDir, "www"))
 	if err != nil {
 		return err
 	}
+	defer web.Close()
+	index, err := web.ReadFile("index.html")
+	if err != nil {
+		return err
+	}
+	assets, err := web.OpenRoot("assets")
+	if err != nil {
+		return err
+	}
+	defer assets.Close()
 	socket := filepath.Join(appDir, "app.sock")
 	listener, err := openSocket(socket, configDir)
 	if err != nil {
@@ -50,7 +59,7 @@ func run() error {
 	defer rules.Close()
 
 	srv := &http.Server{
-		Handler: newHandler(rules, web, index), ReadHeaderTimeout: 5 * time.Second,
+		Handler: newHandler(rules, assets.FS(), index), ReadHeaderTimeout: 5 * time.Second,
 		ReadTimeout: 10 * time.Second, WriteTimeout: 15 * time.Second,
 		IdleTimeout: 30 * time.Second, MaxHeaderBytes: 32 << 10,
 	}
