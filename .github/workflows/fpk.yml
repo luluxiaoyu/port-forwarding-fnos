@@ -1,0 +1,80 @@
+name: Build fnOS packages
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    if: github.event_name != 'release' || !github.event.release.prerelease
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event_name == 'release' && github.event.release.tag_name || github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - uses: actions/setup-go@v7
+        with:
+          go-version: '1.26.x'
+          cache: false
+      - run: npm --prefix frontend ci
+      - run: npm --prefix frontend run check
+      - run: go test -race ./...
+      - name: Validate release version
+        if: github.event_name == 'release'
+        env:
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+        run: |
+          if [[ ! "$RELEASE_TAG" =~ ^v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$ ]]; then
+            echo "Release tags must use vX.Y.Z" >&2
+            exit 1
+          fi
+          echo "APP_VERSION=${RELEASE_TAG#v}" >> "$GITHUB_ENV"
+      - run: node scripts/build_fpk.mjs
+      - uses: actions/upload-artifact@v7
+        with:
+          name: port-forwarding-fnos-amd64
+          path: dist_fpk/*_amd64.fpk
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v7
+        with:
+          name: port-forwarding-fnos-arm64
+          path: dist_fpk/*_arm64.fpk
+          if-no-files-found: error
+
+  publish:
+    if: github.event_name == 'release' && !github.event.release.prerelease
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          pattern: port-forwarding-fnos-*
+          merge-multiple: true
+          path: dist_fpk
+      - name: Upload packages to the published release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+        run: |
+          version="${RELEASE_TAG#v}"
+          amd64="dist_fpk/port-forwarding-fnos_${version}_amd64.fpk"
+          arm64="dist_fpk/port-forwarding-fnos_${version}_arm64.fpk"
+          test -f "$amd64"
+          test -f "$arm64"
+          gh release upload --clobber "$RELEASE_TAG" "$amd64" "$arm64"

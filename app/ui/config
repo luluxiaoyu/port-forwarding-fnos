@@ -1,0 +1,15 @@
+{
+  ".url": {
+    "port-forwarding-fnos.Application": {
+      "title": "本地端口转发",
+      "icon": "images/icon_{0}.png",
+      "type": "iframe",
+      "protocol": "",
+      "gatewayPrefix": "/app/port-forwarding-fnos",
+      "gatewaySocket": "app.sock",
+      "url": "/app/port-forwarding-fnos",
+      "allUsers": false,
+      "control": { "accessPerm": "readonly", "pathPerm": "readonly" }
+    }
+  }
+}
